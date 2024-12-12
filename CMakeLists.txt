@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
+cmake_policy(SET CMP0091 NEW)
 
 set(IGNORE_VAMP_PLUGIN_TESTER OFF CACHE STRING "Disables the tests with vamp plugin tester")
 set(PARTIELS_EXE_HINT_PATH "/Applications" CACHE PATH "")
@@ -23,23 +24,19 @@ option(GGML_OPENMP "ggml: use OpenMP" OFF)
 set(WHISPER_STATIC ON)
 set(BUILD_SHARED_LIBS_DEFAULT OFF)
 
-FetchContent_Declare(
-  whisper_cpp
-  GIT_REPOSITORY https://github.com/ggerganov/whisper.cpp.git
-  GIT_TAG        fe36c909715e6751277ddb020e7892c7670b61d4
-  PATCH_COMMAND  ${GIT_EXECUTABLE} reset --hard && ${GIT_EXECUTABLE} clean -fxd && ${GIT_EXECUTABLE} apply ${CMAKE_CURRENT_SOURCE_DIR}/resource/whisper.cpp-fe36c90.patch
-  CMAKE_ARGS -DGGML_OPENMP=OFF -DGGML_METAL_EMBED_LIBRARY=ON -DGGML_OPENMP=OFF -DWHISPER_STATIC=ON -DBUILD_SHARED_LIBS_DEFAULT=OFF
-  UPDATE_DISCONNECTED TRUE
-  EXCLUDE_FROM_ALL
-)
-FetchContent_MakeAvailable(whisper_cpp)
+add_subdirectory(whisper.cpp EXCLUDE_FROM_ALL)
 
 if(APPLE)
   target_compile_options(ggml PRIVATE -Wno-shorten-64-to-32)
+  target_compile_options(ggml-metal PRIVATE -Wno-shorten-64-to-32)
+  target_compile_options(ggml-cpu PRIVATE -Wno-shorten-64-to-32)
   target_compile_options(whisper PRIVATE -Wno-shorten-64-to-32)
 elseif(UNIX)
   target_compile_options(ggml PRIVATE -Wno-unused-function -Wno-unused-parameter)
   target_compile_options(whisper PRIVATE -Wno-unused-function -Wno-unused-parameter)
+elseif(MSVC)
+  set_target_properties(ggml PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  set_target_properties(whisper PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
 ### Project ###
@@ -77,12 +74,12 @@ foreach(WVP_MODEL_CAPACITY IN ITEMS "tiny-q5_1" "small-q5_1" "medium-q5_0" "larg
   if(NOT EXISTS ${WVP_MODEL_PATH})
     message(STATUS "Downloading model ggml-${WVP_MODEL_CAPACITY}.bin")
     if(WIN32)
-      execute_process(COMMAND ${whisper_cpp_SOURCE_DIR}/models/download-ggml-model.cmd ${WVP_MODEL_CAPACITY})
+      execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/whisper.cpp/models/download-ggml-model.cmd ${WVP_MODEL_CAPACITY})
     else()
-      execute_process(COMMAND ${whisper_cpp_SOURCE_DIR}/models/download-ggml-model.sh ${WVP_MODEL_CAPACITY})
+      execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/whisper.cpp/models/download-ggml-model.sh ${WVP_MODEL_CAPACITY})
     endif()
-    file(COPY_FILE "${whisper_cpp_SOURCE_DIR}/models/ggml-${WVP_MODEL_CAPACITY}.bin" ${WVP_MODEL_PATH})
-    file(REMOVE "${whisper_cpp_SOURCE_DIR}/models/ggml-${WVP_MODEL_CAPACITY}.bin")
+    file(COPY_FILE "${CMAKE_CURRENT_SOURCE_DIR}/whisper.cpp/models/ggml-${WVP_MODEL_CAPACITY}.bin" ${WVP_MODEL_PATH})
+    file(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/whisper.cpp/models/ggml-${WVP_MODEL_CAPACITY}.bin")
   endif()
   if(APPLE)
     vpp_add_file(${WVP_MODEL_PATH} "/Library/Application Support/Ircam/whispermodels")
@@ -97,11 +94,11 @@ set(WVP_MODEL_CPP ${CMAKE_CURRENT_BINARY_DIR}/source/wvp_model.cpp)
 set(WVP_MODEL_H ${CMAKE_CURRENT_SOURCE_DIR}/source/wvp_model.h)
 if(NOT EXISTS ${WVP_MODEL_CPP})
   if(WIN32)
-    execute_process(COMMAND ${whisper_cpp_SOURCE_DIR}/models/download-ggml-model.cmd base-q5_1)
+    execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/whisper.cpp/models/download-ggml-model.cmd base-q5_1)
   else()
-    execute_process(COMMAND ${whisper_cpp_SOURCE_DIR}/models/download-ggml-model.sh base-q5_1)
+    execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/whisper.cpp/models/download-ggml-model.sh base-q5_1)
   endif()
-  set(WVP_MODEL_PATH "${whisper_cpp_SOURCE_DIR}/models/ggml-base-q5_1.bin")
+  set(WVP_MODEL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/whisper.cpp/models/ggml-base-q5_1.bin")
   file(RELATIVE_PATH  WVP_MODEL_HREL "${CMAKE_CURRENT_BINARY_DIR}/source" ${WVP_MODEL_H})
   file(WRITE ${WVP_MODEL_CPP} "#include \"${WVP_MODEL_HREL}\"\n\n")
 
@@ -170,8 +167,8 @@ string(REPLACE "APPVERSION" "${WVP_BUILD_TAG} (${GIT_COMMIT_ID})" MANUAL_CONTENT
 string(REPLACE "src=\"../resource/" "src=\"${CMAKE_CURRENT_SOURCE_DIR}/resource/" MANUAL_CONTENT ${MANUAL_CONTENT})
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/whisper-manual.md ${MANUAL_CONTENT})
 
-file(COPY ${CMAKE_CURRENT_BINARY_DIR}/_deps/whisper_cpp-src/models/download-ggml-model.cmd DESTINATION ${WVP_MANUAL_DIR})
-file(COPY ${CMAKE_CURRENT_BINARY_DIR}/_deps/whisper_cpp-src/models/download-ggml-model.sh DESTINATION ${WVP_MANUAL_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/whisper.cpp/models/download-ggml-model.cmd DESTINATION ${WVP_MANUAL_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/whisper.cpp/models/download-ggml-model.sh DESTINATION ${WVP_MANUAL_DIR})
 find_program(MDPDF_EXE "mdpdf")
 if(MDPDF_EXE)
   add_custom_target(wvp_manual COMMAND ${MDPDF_EXE} ${CMAKE_CURRENT_BINARY_DIR}/whisper-manual.md ${WVP_MANUAL_DIR}/whisper-manual.pdf VERBATIM)

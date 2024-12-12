@@ -4,3 +4,6 @@
 [submodule "vamp-plugin-packager"]
 	path = vamp-plugin-packager
 	url = https://github.com/Ircam-Partiels/vamp-plugin-packager.git
+[submodule "whisper.cpp"]
+	path = whisper.cpp
+	url = https://github.com/ggerganov/whisper.cpp.git
