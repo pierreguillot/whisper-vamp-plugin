@@ -19,8 +19,9 @@ jobs:
     - name: Check
       uses: jidicula/clang-format-action@v4.14.0
       with:
-        clang-format-version: '18'
+        clang-format-version: '19'
         check-path: '.'
+        exclude-regex: 'whisper.cpp'
   # Creates a cache for the model downloaded and transcribed 
   # into the C++ file for embedding in the binary. 
   Cache:
