@@ -40,7 +40,7 @@ elseif(MSVC)
 endif()
 
 ### Project ###
-project(WhisperVampPlugin VERSION 1.0.0 LANGUAGES C CXX)
+project(WhisperVampPlugin VERSION 2.0.0 LANGUAGES C CXX)
 
 ### Version ###
 execute_process(COMMAND git log -1 --format=%h WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR} OUTPUT_VARIABLE GIT_COMMIT_ID OUTPUT_STRIP_TRAILING_WHITESPACE)
