@@ -191,9 +191,13 @@ Wvp::Plugin::Plugin(float inputSampleRate)
 {
     whisper_log_set([](enum ggml_log_level level, const char* text, void* user_data)
                     {
-                        if(level <= GGML_LOG_LEVEL_WARN)
+                        if(level >= GGML_LOG_LEVEL_WARN)
                         {
                             std::cerr << text << "\n";
+                        }
+                        else
+                        {
+                            std::cout << text << "\n";
                         }
                     },
                     nullptr);
