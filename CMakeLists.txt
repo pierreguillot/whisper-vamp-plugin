@@ -69,12 +69,7 @@ include(vamp-plugin-packager/vamp-plugin-packager.cmake)
 
 ### Source ###
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/models")
-if(UNIX)
-  set(WVP_MODEL_CAPACITIES "tiny-q5_1" "small-q5_1" "medium-q5_0" "large-v2-q5_0" "large-v3-turbo-q5_0")
-else()
-  set(WVP_MODEL_CAPACITIES "tiny-q5_1" "small-q5_1" "medium-q5_0" "large-v2-q5_0")
-endif()
-foreach(WVP_MODEL_CAPACITY IN ITEMS ${WVP_MODEL_CAPACITIES})
+foreach(WVP_MODEL_CAPACITY IN ITEMS "tiny-q5_1" "small-q5_1" "medium-q5_0" "large-v2-q5_0")
   set(WVP_MODEL_PATH "${CMAKE_CURRENT_BINARY_DIR}/models/ggml-${WVP_MODEL_CAPACITY}.bin")
   if(NOT EXISTS ${WVP_MODEL_PATH})
     message(STATUS "Downloading model ggml-${WVP_MODEL_CAPACITY}.bin")
