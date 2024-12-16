@@ -44,7 +44,7 @@ Use the installer for your operating system. The plugin dynamic library (*whispe
 
 ## Models
 
-By default, the plugin embeds the ggml-base-q5_1, which requires little space and offers fairly fast calculation and other models small-q5_1, medium-q5_0, large-v2-q5_0, and large-v3-turbo-q5_0 (Mac & Linux only) are installed on your system.
+By default, the plugin embeds the ggml-base-q5_1, which requires little space and offers fairly fast calculation and other models small-q5_1, medium-q5_0, and large-v2-q5_0 are installed on your system.
 
 It is possible to download other models that are potentially more robust or more adapted to your needs. To do this, you can use the `download-ggml-model.sh/cmd` scripts from Georgi Gerganov's [Whisper.cpp](https://github.com/ggerganov/whisper.cpp) project and provided with the plugin package. Once downloaded, these models must be installed in the repository:
 - Linux: `~/.config/Ircam/whispermodels` or `/opt/Ircam/whispermodels`
